@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 
-const AVATAR = `${import.meta.env.BASE_URL}MTP.jpg`
+const AVATAR = `${import.meta.env.BASE_URL}avt.jpg`
 
 const SOCIAL_LINKS = [
   {

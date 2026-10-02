@@ -1,0 +1,10 @@
+{
+  "description": "This mobile-friendly website enables affiliate marketing by showcasing personal images and linking to social media and product pages, enhancing user engagement.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

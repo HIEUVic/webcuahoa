@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react'
 
-import avatarImg from '@/img/CGai.jpeg'
-const AVATAR = avatarImg
+const AVATAR = `${import.meta.env.BASE_URL}CGai.jpeg`
 
 const SOCIAL_LINKS = [
   {

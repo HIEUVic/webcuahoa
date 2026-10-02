@@ -11,8 +11,7 @@ export default defineConfig(({ mode }) => {
   const emitSourcemaps = mode === 'development'
 
   return {
-    base: process.env.NODE_ENV === 'production' ? '/webcuahoa/' : '/',
-    build: {
+      base: process.env.NODE_ENV === 'production' ? '/webcuahoa/' : '/',    build: {
       sourcemap: emitSourcemaps ? 'inline' : false,
       minify: !emitSourcemaps,
     },

@@ -40,7 +40,7 @@ export default function App() {
 
   return (
       <div
-        className="min-h-screen max-w-sm mx-auto relative"
+        className="min-h-screen w-full sm:max-w-sm mx-auto relative"
         style={{ fontFamily: "'Outfit', sans-serif" }}
       >
       {/* Background Gradient */}

@@ -25,9 +25,11 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
 
-  // 1. State Profile
+  // 1. State Profile & Avatar Crop
   const [profile, setProfile] = useState<ProfileInfo | null>(null)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [rawAvatarCropSrc, setRawAvatarCropSrc] = useState<string | null>(null)
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null)
 
   // 2. State Categories
   const [categories, setCategories] = useState<Category[]>([])
@@ -35,7 +37,7 @@ export default function AdminPage() {
   const [categoryOrder, setCategoryOrder] = useState<string>('')
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
 
-  // 3. State Products
+  // 3. State Products & Product Crop
   const [products, setProducts] = useState<Product[]>([])
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [isProductModalOpen, setIsProductModalOpen] = useState(false)
@@ -87,13 +89,27 @@ export default function AdminPage() {
     navigate('/login', { replace: true })
   }
 
-  // Mở modal Crop từ ảnh đang có
+  // Mở modal Crop từ ảnh sản phẩm đang có
   const handleOpenCropper = () => {
-    const currentSrc = cropPreviewUrl || (productImageFile ? URL.createObjectURL(productImageFile) : productForm.image_url)
+    const currentSrc =
+      cropPreviewUrl ||
+      (productImageFile ? URL.createObjectURL(productImageFile) : productForm.image_url)
     if (currentSrc) {
       setRawCropImageSrc(currentSrc)
     } else {
       showToast('Vui lòng chọn hoặc dán link ảnh trước khi cắt', 'error')
+    }
+  }
+
+  // Mở modal Crop từ ảnh Avatar đang có
+  const handleOpenAvatarCropper = () => {
+    const currentSrc =
+      avatarPreviewUrl ||
+      (avatarFile ? URL.createObjectURL(avatarFile) : profile?.avatarUrl)
+    if (currentSrc) {
+      setRawAvatarCropSrc(currentSrc)
+    } else {
+      showToast('Vui lòng chọn ảnh đại diện trước khi cắt', 'error')
     }
   }
 
@@ -107,6 +123,7 @@ export default function AdminPage() {
     setLoading(true)
     let updatedAvatarUrl = profile.avatarUrl
 
+    // Nếu có chọn file ảnh mới (đã crop) thì upload lên Supabase Storage
     if (avatarFile) {
       const uploadedUrl = await uploadImage(avatarFile, 'avatars')
       if (uploadedUrl) {
@@ -127,6 +144,7 @@ export default function AdminPage() {
     if (success) {
       setProfile((prev) => (prev ? { ...prev, avatarUrl: updatedAvatarUrl } : null))
       setAvatarFile(null)
+      setAvatarPreviewUrl(null)
       showToast('Cập nhật Profile thành công!')
     } else {
       showToast('Cập nhật Profile thất bại', 'error')
@@ -363,7 +381,7 @@ export default function AdminPage() {
         {[
           { key: 'products', label: '🛍️ Sản phẩm' },
           { key: 'stats', label: '📊 Thống kê' },
-          { key: 'categories', label: '🏷️ Danh mục' },
+          { key: 'categories', label: '🏷️️ Danh mục' },
           { key: 'profile', label: '👤 Hồ sơ' },
         ].map((tab) => (
           <button
@@ -618,30 +636,56 @@ export default function AdminPage() {
             <div className="p-4 bg-white rounded-2xl border border-stone-200 space-y-3">
               <h2 className="text-xs font-bold text-stone-700 uppercase">Thông tin hiển thị</h2>
 
-              <div className="flex items-center gap-3">
-                <img
-                  src={
-                    avatarFile
-                      ? URL.createObjectURL(avatarFile)
-                      : profile.avatarUrl || 'avt.jpg'
-                  }
-                  alt="Avatar"
-                  className="w-14 h-14 rounded-2xl object-cover border-2 border-stone-300"
-                />
-                <div className="flex-1">
-                  <label className="block text-xs font-medium text-stone-600 mb-1">
-                    Đổi ảnh đại diện
+              {/* Avatar Upload kèm Cắt ảnh */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[11px] text-stone-600 font-medium">
+                    Ảnh đại diện
                   </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setAvatarFile(e.target.files[0])
+                  {(avatarPreviewUrl || avatarFile || profile.avatarUrl) && (
+                    <button
+                      type="button"
+                      onClick={handleOpenAvatarCropper}
+                      className="text-[11px] font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 px-2 py-0.5 rounded-md border border-amber-200 cursor-pointer"
+                    >
+                      ✂️ Cắt / Chỉnh vùng ảnh
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div
+                    className="relative group cursor-pointer shrink-0"
+                    onClick={handleOpenAvatarCropper}
+                    title="Bấm để căn chỉnh góc cắt ảnh đại diện"
+                  >
+                    <img
+                      src={
+                        avatarPreviewUrl ||
+                        (avatarFile ? URL.createObjectURL(avatarFile) : profile.avatarUrl || 'avt.jpg')
                       }
-                    }}
-                    className="block w-full text-xs text-stone-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-stone-100 hover:file:bg-stone-200"
-                  />
+                      alt="Avatar"
+                      className="w-14 h-14 rounded-2xl object-cover border-2 border-stone-300"
+                    />
+                    <div className="absolute inset-0 bg-black/30 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-bold">
+                      ✂️
+                    </div>
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          const file = e.target.files[0]
+                          setRawAvatarCropSrc(URL.createObjectURL(file))
+                          e.target.value = ''
+                        }
+                      }}
+                      className="block w-full text-xs text-stone-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-stone-100 hover:file:bg-stone-200 cursor-pointer"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -665,6 +709,7 @@ export default function AdminPage() {
                 />
               </div>
 
+              {/* 3 Cột: Followers - Đánh giá - Sản phẩm */}
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="block text-[11px] text-stone-500 mb-1">Followers</label>
@@ -699,6 +744,7 @@ export default function AdminPage() {
               </div>
             </div>
 
+            {/* Mạng xã hội */}
             <div className="p-4 bg-white rounded-2xl border border-stone-200 space-y-2.5">
               <h2 className="text-xs font-bold text-stone-700 uppercase">Liên kết Mạng Xã Hội</h2>
               <div>
@@ -870,7 +916,7 @@ export default function AdminPage() {
                         e.target.value = ''
                       }
                     }}
-                    className="block w-full text-[11px] text-stone-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[11px] file:bg-stone-100 hover:file:bg-stone-200"
+                    className="block w-full text-[11px] text-stone-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[11px] file:bg-stone-100 hover:file:bg-stone-200 cursor-pointer"
                   />
                 </div>
                 <input
@@ -940,7 +986,7 @@ export default function AdminPage() {
                     onChange={(e) =>
                       setProductForm({ ...productForm, is_hot: e.target.checked })
                     }
-                    className="rounded text-rose-500 w-4 h-4"
+                    className="rounded text-rose-500 w-4 h-4 cursor-pointer"
                   />
                   <span className="font-semibold text-rose-600">Gắn nhãn HOT 🔥</span>
                 </label>
@@ -952,7 +998,7 @@ export default function AdminPage() {
                     onChange={(e) =>
                       setProductForm({ ...productForm, is_active: e.target.checked })
                     }
-                    className="rounded text-emerald-600 w-4 h-4"
+                    className="rounded text-emerald-600 w-4 h-4 cursor-pointer"
                   />
                   <span className="font-semibold text-stone-700">Đang bán</span>
                 </label>
@@ -983,7 +1029,7 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* Modal Cắt chỉnh ảnh */}
+      {/* Modal Cắt chỉnh ảnh sản phẩm */}
       {rawCropImageSrc && (
         <ImageCropModal
           imageSrc={rawCropImageSrc}
@@ -993,6 +1039,19 @@ export default function AdminPage() {
             setRawCropImageSrc(null)
           }}
           onCancel={() => setRawCropImageSrc(null)}
+        />
+      )}
+
+      {/* Modal Cắt chỉnh ảnh đại diện (Avatar) */}
+      {rawAvatarCropSrc && (
+        <ImageCropModal
+          imageSrc={rawAvatarCropSrc}
+          onCropComplete={(croppedFile, previewUrl) => {
+            setAvatarFile(croppedFile)
+            setAvatarPreviewUrl(previewUrl)
+            setRawAvatarCropSrc(null)
+          }}
+          onCancel={() => setRawAvatarCropSrc(null)}
         />
       )}
     </div>

@@ -1,3 +1,5 @@
+import { useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ProfileInfo, SocialLink } from '../../types'
 
 const SOCIAL_LINKS: SocialLink[] = [
@@ -52,6 +54,25 @@ interface ProfileCardProps {
 }
 
 export default function ProfileCard({ profile }: ProfileCardProps) {
+  const navigate = useNavigate()
+  const clickCountRef = useRef(0)
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Nhấn 3 lần liên tiếp trong vòng 1s để vào Admin
+  const handleSecretAdminAccess = () => {
+    clickCountRef.current += 1
+    if (timerRef.current) clearTimeout(timerRef.current)
+
+    if (clickCountRef.current >= 3) {
+      clickCountRef.current = 0
+      navigate('/admin')
+    } else {
+      timerRef.current = setTimeout(() => {
+        clickCountRef.current = 0
+      }, 1000)
+    }
+  }
+
   return (
     <section className="px-4 pt-4 pb-2">
       <div
@@ -67,12 +88,22 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
           style={{ background: 'rgba(255,255,255,0.3)' }}
         />
         <div className="flex items-center gap-4 relative z-10">
-          <div className="relative shrink-0">
+          {/* Avatar gắn Triple Tap */}
+          <div
+            onClick={handleSecretAdminAccess}
+            className="relative shrink-0 cursor-pointer select-none active:scale-95 transition-transform"
+            title="Nhấn 3 lần để vào quản trị"
+          >
             <img
               src={profile.avatarUrl}
               alt={`${profile.displayName} avatar`}
               className="w-20 h-20 rounded-2xl object-cover"
-              style={{ borderWidth: 3, borderColor: '#fff', borderStyle: 'solid', boxShadow: '0 4px 16px rgba(0,0,0,0.25)' }}
+              style={{
+                borderWidth: 3,
+                borderColor: '#fff',
+                borderStyle: 'solid',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+              }}
             />
             <div
               className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs"

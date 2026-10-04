@@ -1,84 +1,32 @@
-import { useState, useMemo } from 'react'
-import Header from './components/header/Header'
-import ProfileCard from './components/profile/ProfileCard'
-import CategoryFilter from './components/products/CategoryFilter'
-import ProductGrid from './components/products/ProductGrid'
-import ScrollToTop from './components/common/ScrollToTop'
-import { PROFILE_INFO, CATEGORIES, PRODUCTS } from './constants/mockData'
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+import HomePage from './pages/HomePage'
+import LoginPage from './pages/LoginPage'
+import AdminPage from './pages/AdminPage'
+import ProtectedRoute from './components/admin/ProtectedRoute'
 
 export default function App() {
-  const [search, setSearch] = useState('')
-  const [activeCategory, setActiveCategory] = useState('Tất cả')
-  const [showSearch, setShowSearch] = useState(false)
-
-  // Hàm chuẩn hóa chuỗi tiếng Việt (hỗ trợ tìm kiếm cả có dấu lẫn không dấu)
-  const normalizeText = (text: string) =>
-    text
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-
-  const filteredProducts = useMemo(() => {
-    return PRODUCTS.filter((p) => {
-      const matchCat =
-        activeCategory === 'Tất cả' || p.category === activeCategory
-
-      const searchNorm = normalizeText(search.trim())
-      const matchSearch =
-        !searchNorm ||
-        normalizeText(p.name).includes(searchNorm) ||
-        normalizeText(p.category).includes(searchNorm)
-
-      return matchCat && matchSearch
-    })
-  }, [search, activeCategory])
-
-  const handleResetFilter = () => {
-    setSearch('')
-    setActiveCategory('Tất cả')
-  }
-
   return (
-      <div
-        className="min-h-screen w-full sm:max-w-sm mx-auto relative"
-        style={{ fontFamily: "'Outfit', sans-serif" }}
-      >
-      {/* Background Gradient */}
-      <div
-        className="fixed inset-0 -z-10"
-        style={{
-          background:
-            'linear-gradient(135deg, #fff8fc 0%, #fef0f7 30%, #f5f0ff 70%, #fdfaff 100%)',
-        }}
-      />
+    <HashRouter>
+      <Routes>
+        {/* Trang người xem */}
+        <Route path="/" element={<HomePage />} />
 
-      {/* Header & Thanh tìm kiếm */}
-      <Header
-        search={search}
-        setSearch={setSearch}
-        showSearch={showSearch}
-        setShowSearch={setShowSearch}
-      />
+        {/* Trang đăng nhập */}
+        <Route path="/login" element={<LoginPage />} />
 
-      {/* Thông tin cá nhân & Banner */}
-      <ProfileCard profile={PROFILE_INFO} />
+        {/* Trang quản trị (bảo vệ bằng Supabase Auth) */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminPage />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Bộ lọc danh mục */}
-      <CategoryFilter
-        categories={CATEGORIES}
-        activeCategory={activeCategory}
-        onSelectCategory={setActiveCategory}
-      />
-
-      {/* Lưới sản phẩm */}
-      <ProductGrid
-        products={filteredProducts}
-        activeCategory={activeCategory}
-        onResetFilter={handleResetFilter}
-      />
-
-      {/* Nút cuộn lên đầu trang */}
-      <ScrollToTop />
-    </div>
+        {/* Tuyến đường phụ tự quay về trang chủ */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </HashRouter>
   )
 }

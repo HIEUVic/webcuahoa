@@ -28,7 +28,7 @@ export default function Header({
 
   return (
     <header
-      className="sticky top-0 z-40 px-4 pt-3 pb-3 backdrop-blur-md shadow-sm transition-all"
+      className="w-full sticky top-0 z-40 px-4 pt-3 pb-3 backdrop-blur-md shadow-sm transition-all"
       style={{
         background: 'rgba(255, 248, 252, 0.92)',
         borderBottom: isInputVisible ? '1px solid rgba(230, 200, 183, 0.4)' : 'none',

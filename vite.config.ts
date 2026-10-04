@@ -11,7 +11,7 @@ export default defineConfig(({ mode, command }) => {
   const emitSourcemaps = mode === 'development'
 
   return {
-    base: command === 'serve' ? '/' : '/webcuahoa/',
+    base: './',
     build: {
       sourcemap: emitSourcemaps ? 'inline' : false,
       minify: !emitSourcemaps,
